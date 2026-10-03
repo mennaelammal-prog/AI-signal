@@ -7,6 +7,12 @@ from .report import summarize_outcomes
 from .scoring import ScoringConfig, SignalForgeEngine
 from .service import SignalForgeService
 from .store import SignalStore
+from .validation import (
+    build_walk_forward_windows,
+    check_no_lookahead,
+    sensitivity_report,
+    walk_forward_report,
+)
 
 __all__ = [
     "CandidateSignal",
@@ -24,4 +30,8 @@ __all__ = [
     "PaperOutcome",
     "evaluate_signal",
     "summarize_outcomes",
+    "build_walk_forward_windows",
+    "check_no_lookahead",
+    "sensitivity_report",
+    "walk_forward_report",
 ]

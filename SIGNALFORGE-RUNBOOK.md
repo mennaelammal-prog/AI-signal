@@ -96,6 +96,17 @@ signalforge report --db .\data\signalforge.db
 
 The report groups trade count, win rate, expectancy, profit factor, drawdown, and exit reasons by strategy. It is descriptive paper-simulation data, not a prediction or live-performance record.
 
+## Validation controls
+
+The `signalforge.validation` module provides:
+
+- `build_walk_forward_windows(...)` for ordered train/test windows.
+- `check_no_lookahead(signals, outcomes)` to verify modeled entry occurs strictly after the source signal and exit does not precede entry.
+- `walk_forward_report(...)` for test-period descriptive metrics.
+- `sensitivity_report(...)` for comparing score thresholds without selecting a recommended threshold.
+
+These reports are safeguards against leakage and overfitting. They do not turn paper results into predictions or live performance.
+
 ## Local review dashboard
 
 After producing a SQLite database:
