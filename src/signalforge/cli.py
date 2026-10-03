@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .models import MarketContext, StrategyStats
+from .report import summarize_outcomes
 from .service import SignalForgeService
 from .store import SignalStore
 from .web import serve_dashboard
@@ -28,12 +29,21 @@ def main(argv: list[str] | None = None) -> int:
     serve.add_argument("--db", required=True, help="SQLite path created by rank processing")
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", type=int, default=8765)
+    report = sub.add_parser("report", help="report descriptive paper outcomes")
+    report.add_argument("--db", required=True, help="SQLite path")
     args = parser.parse_args(argv)
     if args.command == "rank":
         return _rank(args)
     if args.command == "serve":
         serve_dashboard(args.db, args.host, args.port)
         return 0
+    if args.command == "report":
+        store = SignalStore(args.db)
+        try:
+            print(json.dumps(summarize_outcomes(store.list_outcomes(limit=1_000_000)), indent=2, sort_keys=True))
+            return 0
+        finally:
+            store.close()
     return 2
 
 

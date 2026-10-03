@@ -88,6 +88,14 @@ The outcome evaluator uses the first bar strictly after the signal timestamp as 
 
 Use `SignalForgeService.evaluate_outcome(result, future_bars, OutcomeConfig(...))` from a controlled Python process. Future bars must contain `bar_ts`, `open`, `high`, `low`, and `close`. Results are stored in the `paper_outcomes` SQLite table and included in the service summary.
 
+Generate a descriptive report:
+
+```powershell
+signalforge report --db .\data\signalforge.db
+```
+
+The report groups trade count, win rate, expectancy, profit factor, drawdown, and exit reasons by strategy. It is descriptive paper-simulation data, not a prediction or live-performance record.
+
 ## Local review dashboard
 
 After producing a SQLite database:

@@ -29,6 +29,7 @@ class OutcomeConfig:
 class PaperOutcome:
     event_id: str
     symbol: str
+    strategy_id: str
     direction: str
     entry_price: float
     exit_price: float
@@ -44,6 +45,7 @@ class PaperOutcome:
         return {
             "event_id": self.event_id,
             "symbol": self.symbol,
+            "strategy_id": self.strategy_id,
             "direction": self.direction,
             "entry_price": self.entry_price,
             "exit_price": self.exit_price,
@@ -108,6 +110,7 @@ def _outcome(signal, entry_ts, entry, exit_ts, exit_price, reason, count, cfg):
     return PaperOutcome(
         signal.candidate.event_id,
         signal.candidate.symbol,
+        signal.candidate.strategy_id,
         signal.candidate.direction,
         round(entry, 8),
         round(exit_price, 8),
