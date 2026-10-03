@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from .models import RankedSignal, StrategyStats
+from .outcomes import PaperOutcome
 
 
 class SignalStore:
@@ -54,6 +55,15 @@ class SignalStore:
             );
             CREATE INDEX IF NOT EXISTS idx_ranked_signals_symbol ON ranked_signals(symbol);
             CREATE INDEX IF NOT EXISTS idx_ranked_signals_status ON ranked_signals(status);
+            CREATE TABLE IF NOT EXISTS paper_outcomes (
+                event_id TEXT PRIMARY KEY,
+                symbol TEXT NOT NULL,
+                exit_reason TEXT NOT NULL,
+                pnl_pct REAL NOT NULL,
+                payload_json TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(event_id) REFERENCES ranked_signals(event_id)
+            );
             """
         )
         self.db.commit()
@@ -131,6 +141,30 @@ class SignalStore:
     def count_signals(self) -> int:
         row = self.db.execute("SELECT COUNT(*) AS n FROM ranked_signals").fetchone()
         return int(row["n"])
+
+    def save_outcome(self, outcome: PaperOutcome) -> bool:
+        cur = self.db.execute(
+            "INSERT OR IGNORE INTO paper_outcomes(event_id,symbol,exit_reason,pnl_pct,payload_json) VALUES(?,?,?,?,?)",
+            (
+                outcome.event_id,
+                outcome.symbol,
+                outcome.exit_reason,
+                outcome.pnl_pct,
+                json.dumps(outcome.as_dict(), sort_keys=True),
+            ),
+        )
+        self.db.commit()
+        return cur.rowcount == 1
+
+    def get_outcome(self, event_id: str) -> dict[str, Any] | None:
+        row = self.db.execute("SELECT payload_json FROM paper_outcomes WHERE event_id=?", (event_id,)).fetchone()
+        return json.loads(row["payload_json"]) if row else None
+
+    def list_outcomes(self, limit: int = 100) -> list[dict[str, Any]]:
+        rows = self.db.execute(
+            "SELECT payload_json FROM paper_outcomes ORDER BY created_at DESC, event_id LIMIT ?", (limit,)
+        ).fetchall()
+        return [json.loads(row["payload_json"]) for row in rows]
 
     def export_json(self) -> list[dict[str, Any]]:
         return self.list_signals(limit=1_000_000)

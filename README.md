@@ -12,7 +12,7 @@ This repository stores the design and implementation guidance for a paper-only s
 
 ## First implementation slice
 
-The `src/signalforge/` package now contains a dependency-light, paper-only baseline engine plus SQLite persistence, a read-only ingestion service, and a local CLI. It consumes serialized scanner alerts, validates their paper-only boundary, ranks them with transparent score components, applies quality gates, persists immutable results, and returns structured explanations and invalidation conditions. It does not connect to a broker or send orders.
+The `src/signalforge/` package now contains a dependency-light, paper-only baseline engine plus SQLite persistence, a read-only ingestion service, a GET-only scanner connector, deterministic hypothetical outcome evaluation, a local CLI, and a read-only dashboard. It consumes serialized scanner alerts, validates their paper-only boundary, ranks them with transparent score components, applies quality gates, persists immutable results and outcomes, and returns structured explanations and invalidation conditions. It does not connect to a broker or send orders.
 
 Run its tests with:
 
@@ -27,11 +27,17 @@ Run the local JSON workflow with:
 PYTHONPATH=src python -m signalforge.cli rank --alerts alerts.jsonl --stats strategy-stats.json --db data/signalforge.db
 ```
 
+Start the local read-only dashboard with:
+
+```bash
+PYTHONPATH=src python -m signalforge.cli serve --db data/signalforge.db
+```
+
 ## Project status
 
 The existing scanner and alert application was tested locally in fixture/synthetic mode. Its health endpoint reported `paper_only: true` and `trading_mode: paper`. Real market-data connectivity, Windows PowerShell execution, PostgreSQL deployment, and provider integration require separate verification.
 
-SignalForge AI has an initial ranking-core, persistence, ingestion, and CLI implementation. A browser UI, direct read-only connector to the scanner API, and paper-outcome evaluation remain later phases.
+SignalForge AI has a ranking core, persistence, ingestion, read-only scanner connector, paper-outcome evaluator, CLI, and local review dashboard. A richer browser UI and broader walk-forward strategy-evaluation workflows remain later phases.
 
 ## Safety
 

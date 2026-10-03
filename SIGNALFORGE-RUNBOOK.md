@@ -9,6 +9,8 @@ This repository now contains a usable first release of SignalForge:
 - `signalforge.store`: SQLite persistence for strategy evidence and immutable ranked signals.
 - `signalforge.service`: read-only scanner-alert ingestion service.
 - `signalforge.connector`: GET-only connector for the scanner's `/api/alerts` endpoint.
+- `signalforge.outcomes`: deterministic hypothetical target/stop/time-exit evaluation over supplied OHLC bars.
+- `signalforge.web`: read-only local dashboard and JSON endpoints.
 - `signalforge.cli`: local JSON/JSON-lines processing command.
 
 The implementation has no broker package, no order endpoint, and no live-trading path.
@@ -79,6 +81,28 @@ The output includes:
 - `paper_only: true`
 - `hypothetical: true`
 - `broker_submission: false`
+
+## Evaluate paper outcomes
+
+The outcome evaluator uses the first bar strictly after the signal timestamp as the modeled entry. It supports target, stop, time exit, commission/slippage deductions, and explicit intrabar policies: `stop_first`, `target_first`, or `reject_ambiguous`. It never uses a broker position and never submits an order.
+
+Use `SignalForgeService.evaluate_outcome(result, future_bars, OutcomeConfig(...))` from a controlled Python process. Future bars must contain `bar_ts`, `open`, `high`, `low`, and `close`. Results are stored in the `paper_outcomes` SQLite table and included in the service summary.
+
+## Local review dashboard
+
+After producing a SQLite database:
+
+```powershell
+signalforge serve --db .\data\signalforge.db --host 127.0.0.1 --port 8765
+```
+
+Open `http://127.0.0.1:8765/`. The dashboard is read-only and exposes only:
+
+- `/` — ranked signal review
+- `/api/summary` — signal and paper-outcome counts
+- `/api/signals` — ranked signal JSON
+
+There are no mutation routes, broker routes, or order routes.
 
 ## Scanner integration
 

@@ -18,7 +18,16 @@ def test_service_persists_ranked_signal_once_and_summarizes():
     assert duplicate.candidate.event_id == "evt_123"
     assert store.count_signals() == 1
     summary = service.summary()
-    assert summary == {"signals": 1, "published": 1, "qualified": 0, "rejected": 0, "paper_only": True, "broker_submission": False}
+    assert summary == {
+        "signals": 1,
+        "published": 1,
+        "qualified": 0,
+        "rejected": 0,
+        "outcomes": 0,
+        "outcome_win_rate": None,
+        "paper_only": True,
+        "broker_submission": False,
+    }
     store.close()
 
 

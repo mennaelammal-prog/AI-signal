@@ -2,6 +2,7 @@
 
 from .connector import ScannerConnectorError, fetch_scanner_alerts
 from .models import CandidateSignal, MarketContext, RankedSignal, RiskContext, StrategyStats
+from .outcomes import OutcomeConfig, PaperOutcome, evaluate_signal
 from .scoring import ScoringConfig, SignalForgeEngine
 from .service import SignalForgeService
 from .store import SignalStore
@@ -18,4 +19,7 @@ __all__ = [
     "SignalStore",
     "ScannerConnectorError",
     "fetch_scanner_alerts",
+    "OutcomeConfig",
+    "PaperOutcome",
+    "evaluate_signal",
 ]

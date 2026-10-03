@@ -11,6 +11,7 @@ from typing import Any
 from .models import MarketContext, StrategyStats
 from .service import SignalForgeService
 from .store import SignalStore
+from .web import serve_dashboard
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -23,9 +24,16 @@ def main(argv: list[str] | None = None) -> int:
     rank.add_argument("--market", type=Path, help="optional JSON market context")
     rank.add_argument("--output", type=Path, help="optional JSON output path")
     rank.add_argument("--min-score", type=float, default=None, help="optional display threshold")
+    serve = sub.add_parser("serve", help="serve the read-only local dashboard")
+    serve.add_argument("--db", required=True, help="SQLite path created by rank processing")
+    serve.add_argument("--host", default="127.0.0.1")
+    serve.add_argument("--port", type=int, default=8765)
     args = parser.parse_args(argv)
     if args.command == "rank":
         return _rank(args)
+    if args.command == "serve":
+        serve_dashboard(args.db, args.host, args.port)
+        return 0
     return 2
 
 
