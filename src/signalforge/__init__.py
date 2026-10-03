@@ -3,6 +3,7 @@
 from .connector import ScannerConnectorError, fetch_scanner_alerts
 from .models import CandidateSignal, MarketContext, RankedSignal, RiskContext, StrategyStats
 from .outcomes import OutcomeConfig, PaperOutcome, evaluate_signal
+from .poll import load_stats_records, poll_scanner_once
 from .report import summarize_outcomes
 from .scoring import ScoringConfig, SignalForgeEngine
 from .service import SignalForgeService
@@ -29,6 +30,8 @@ __all__ = [
     "OutcomeConfig",
     "PaperOutcome",
     "evaluate_signal",
+    "load_stats_records",
+    "poll_scanner_once",
     "summarize_outcomes",
     "build_walk_forward_windows",
     "check_no_lookahead",

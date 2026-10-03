@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .models import MarketContext, StrategyStats
+from .poll import load_stats_records, poll_scanner_once
 from .report import summarize_outcomes
 from .service import SignalForgeService
 from .store import SignalStore
@@ -39,6 +40,12 @@ def main(argv: list[str] | None = None) -> int:
     validate.add_argument("--end", required=True, help="window end date YYYY-MM-DD")
     validate.add_argument("--train-days", type=int, default=20)
     validate.add_argument("--test-days", type=int, default=5)
+    poll = sub.add_parser("poll", help="fetch scanner alerts once and rank them")
+    poll.add_argument("--scanner-url", default="http://127.0.0.1:8000")
+    poll.add_argument("--stats", required=True, type=Path)
+    poll.add_argument("--db", required=True)
+    poll.add_argument("--status", default="triggered")
+    poll.add_argument("--limit", type=int, default=100)
     args = parser.parse_args(argv)
     if args.command == "rank":
         return _rank(args)
@@ -69,6 +76,21 @@ def main(argv: list[str] | None = None) -> int:
         }
         print(json.dumps(payload, indent=2, sort_keys=True))
         return 0
+    if args.command == "poll":
+        store = SignalStore(args.db)
+        try:
+            records = _load_json(args.stats)
+            store.save_many_stats(load_stats_records(records))
+            results = poll_scanner_once(
+                SignalForgeService(store),
+                scanner_url=args.scanner_url,
+                status=args.status,
+                limit=args.limit,
+            )
+            print(json.dumps({"summary": SignalForgeService(store).summary(), "signals": [x.as_dict() for x in results]}, indent=2, sort_keys=True))
+            return 0
+        finally:
+            store.close()
     return 2
 
 

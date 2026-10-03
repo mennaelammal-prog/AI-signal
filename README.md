@@ -27,6 +27,12 @@ Run the local JSON workflow with:
 PYTHONPATH=src python -m signalforge.cli rank --alerts alerts.jsonl --stats strategy-stats.json --db data/signalforge.db
 ```
 
+Poll the local scanner once through its read-only alert API:
+
+```bash
+PYTHONPATH=src python -m signalforge.cli poll --scanner-url http://127.0.0.1:8000 --stats strategy-stats.json --db data/signalforge.db
+```
+
 Start the local read-only dashboard with:
 
 ```bash

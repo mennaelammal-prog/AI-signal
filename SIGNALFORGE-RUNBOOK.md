@@ -150,6 +150,19 @@ The integration must preserve:
 
 Do not merge the SignalForge score back into the scanner’s immutable alert record. Store it as a separate result linked by `event_id`.
 
+For a one-shot local poll, import version-matched evidence and fetch current triggered alerts through the GET-only connector:
+
+```powershell
+signalforge poll `
+  --scanner-url http://127.0.0.1:8000 `
+  --stats .\strategy-stats.json `
+  --db .\data\signalforge.db `
+  --status triggered `
+  --limit 100
+```
+
+This command only reads `/api/alerts`, writes SignalForge’s local SQLite results, and prints ranked hypothetical signals. It cannot submit an order.
+
 ## Operational rules
 
 - Do not set `paper_only` or `hypothetical` to false.
