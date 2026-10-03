@@ -83,7 +83,34 @@ Get-ChildItem $ScannerDir
 Get-ChildItem $SignalForgeDir
 ```
 
-## 4. Set up and test the scanner repository
+## 4. Select the implemented scanner branch
+
+The scanner repository's default `main` branch is not the implementation branch. After cloning, switch to:
+
+```text
+claude/quirky-darwin-kh12ms
+```
+
+Run:
+
+```powershell
+Set-Location $ScannerDir
+git fetch origin
+git switch -C claude/quirky-darwin-kh12ms origin/claude/quirky-darwin-kh12ms
+git branch --show-current
+Test-Path .\pyproject.toml
+```
+
+Expected output:
+
+```text
+claude/quirky-darwin-kh12ms
+True
+```
+
+If `Test-Path .\pyproject.toml` returns `False`, stop. The wrong branch is still checked out.
+
+## 5. Set up and test the scanner repository
 
 The scanner directory is `$ScannerDir`. **Change into it before running scanner commands.**
 
@@ -111,7 +138,7 @@ python -m scanalert check-config
 
 The configuration must report paper mode. The scanner must not have live credentials, live broker URLs, or a live-trading flag.
 
-## 5. Start the scanner in PowerShell window 1
+## 6. Start the scanner in PowerShell window 1
 
 Keep this PowerShell window open:
 
@@ -154,7 +181,7 @@ Invoke-RestMethod "http://127.0.0.1:8000/api/alerts?status=triggered&limit=10" |
   ConvertTo-Json -Depth 20
 ```
 
-## 6. Set up SignalForge in PowerShell window 2
+## 7. Set up SignalForge in PowerShell window 2
 
 Open a second PowerShell window. Set the directories again because variables do not automatically transfer between windows:
 
@@ -171,7 +198,9 @@ Get-Location
 Create the SignalForge virtual environment and install it:
 
 ```powershell
-py -3.11 -m venv .venv
+# Python 3.12 is valid. Do not require the unavailable py -3.11 launcher.
+python --version
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 
 python -m pip install --upgrade pip
@@ -193,7 +222,7 @@ If the `signalforge` command is not found, use the module form in every command 
 python -m signalforge.cli --help
 ```
 
-## 7. Run SignalForge tests and quality checks
+## 8. Run SignalForge tests and quality checks
 
 Run these from the **AI-signal directory**, not the scanner directory:
 
@@ -208,7 +237,7 @@ python -m compileall -q src
 
 All tests should pass before connecting to the scanner.
 
-## 8. Create the data directory and strategy-evidence file
+## 9. Create the data directory and strategy-evidence file
 
 Still from `$SignalForgeDir`:
 
@@ -247,7 +276,7 @@ Get-Content .\data\strategy-stats.json
 
 Replace this example with properly calculated, point-in-time strategy evidence before using the results for research. Do not calculate evidence using bars after the signal timestamp.
 
-## 9. One-shot poll from the scanner
+## 10. One-shot poll from the scanner
 
 Run this from the **AI-signal directory**:
 
@@ -276,7 +305,7 @@ python -m signalforge.cli poll `
 
 This performs a GET-only read from `/api/alerts`, stores ranked results in SQLite, and prints hypothetical paper signals.
 
-## 10. Continuous watcher
+## 11. Continuous watcher
 
 Run this from the **AI-signal directory**:
 
@@ -310,7 +339,7 @@ Ctrl+C
 
 The watcher checks `/health` before every cycle and refuses to poll if the scanner is not paper-only.
 
-## 11. Start the SignalForge read-only dashboard
+## 12. Start the SignalForge read-only dashboard
 
 Open another PowerShell window and set the SignalForge directory again:
 
@@ -345,7 +374,7 @@ The dashboard must show:
 PAPER ONLY — HYPOTHETICAL SIGNALS — NOT ORDERS
 ```
 
-## 12. Generate the descriptive paper report
+## 13. Generate the descriptive paper report
 
 From the **AI-signal directory**:
 
@@ -363,7 +392,7 @@ signalforge report --db .\data\signalforge.db |
   Tee-Object -FilePath .\data\paper-report.json
 ```
 
-## 13. Run leakage and walk-forward validation
+## 14. Run leakage and walk-forward validation
 
 The validation command requires ranked signal JSON and paper-outcome JSON exports:
 
@@ -388,7 +417,7 @@ clean: true
 paper_only: true
 ```
 
-## 14. Check which directory PowerShell is using
+## 15. Check which directory PowerShell is using
 
 If a command fails with “path not found” or “file not found”, run:
 
@@ -411,7 +440,7 @@ Get-Location
 # ...\TradingTools\AI-signal
 ```
 
-## 15. Check ports and stop processes
+## 16. Check ports and stop processes
 
 Check the scanner port:
 
@@ -445,7 +474,7 @@ Stop-Process -Id <PID> -Force
 
 Do not stop an unknown process.
 
-## 16. Common errors
+## 17. Common errors
 
 ### `Cannot find path 'C:\path\to\scan-and-alert-'`
 
@@ -456,6 +485,32 @@ $ScannerDir = "C:\Users\<your-Windows-user>\TradingTools\scan-and-alert-"
 Set-Location $ScannerDir
 Get-Location
 ```
+
+### `No suitable Python runtime found` for `py -3.11`
+
+Your Windows installation has Python 3.12. Python 3.12 satisfies the scanner and SignalForge requirement. Use:
+
+```powershell
+Set-Location $ScannerDir
+python --version
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+Do not use `py -3.11` unless `py -0p` shows that Python 3.11 is installed.
+
+### `does not appear to be a Python project`
+
+The scanner is probably still on the default documentation branch. Switch branches:
+
+```powershell
+Set-Location $ScannerDir
+git fetch origin
+git switch -C claude/quirky-darwin-kh12ms origin/claude/quirky-darwin-kh12ms
+Test-Path .\pyproject.toml
+```
+
+The final command must return `True`.
 
 ### `signalforge is not recognized`
 
@@ -473,7 +528,8 @@ Run from the correct repository directory:
 
 ```powershell
 Set-Location $SignalForgeDir
-py -3.11 -m venv .venv
+python --version
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[dev]"
 ```
@@ -515,7 +571,7 @@ Only one writer should use a SQLite database at a time. Stop duplicate watcher o
 Get-Process python -ErrorAction SilentlyContinue
 ```
 
-## 17. Safety rules
+## 18. Safety rules
 
 - Keep `$env:TRADING_MODE = "paper"`.
 - Keep the scanner bound to `127.0.0.1` for local use.
