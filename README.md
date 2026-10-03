@@ -33,6 +33,12 @@ Poll the local scanner once through its read-only alert API:
 PYTHONPATH=src python -m signalforge.cli poll --scanner-url http://127.0.0.1:8000 --stats strategy-stats.json --db data/signalforge.db
 ```
 
+Run bounded continuous polling with health enforcement:
+
+```bash
+PYTHONPATH=src python -m signalforge.cli watch --scanner-url http://127.0.0.1:8000 --stats strategy-stats.json --db data/signalforge.db --interval 15 --cycles 20
+```
+
 Start the local read-only dashboard with:
 
 ```bash

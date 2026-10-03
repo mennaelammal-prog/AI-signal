@@ -163,6 +163,19 @@ signalforge poll `
 
 This command only reads `/api/alerts`, writes SignalForge’s local SQLite results, and prints ranked hypothetical signals. It cannot submit an order.
 
+For continuous local monitoring, use the watcher:
+
+```powershell
+signalforge watch `
+  --scanner-url http://127.0.0.1:8000 `
+  --stats .\strategy-stats.json `
+  --db .\data\signalforge.db `
+  --interval 15 `
+  --cycles 20
+```
+
+Omit `--cycles` for continuous mode and press `Ctrl+C` for a graceful stop. Every cycle first reads `/health` and refuses to poll unless the scanner reports `paper_only: true` and `trading_mode: paper`. Duplicate event IDs remain harmless because results are immutable by `event_id`.
+
 ## Operational rules
 
 - Do not set `paper_only` or `hypothetical` to false.

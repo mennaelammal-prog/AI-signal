@@ -14,6 +14,7 @@ from .report import summarize_outcomes
 from .service import SignalForgeService
 from .store import SignalStore
 from .validation import build_walk_forward_windows, sensitivity_report, walk_forward_report
+from .watch import watch_scanner
 from .web import serve_dashboard
 
 
@@ -46,6 +47,14 @@ def main(argv: list[str] | None = None) -> int:
     poll.add_argument("--db", required=True)
     poll.add_argument("--status", default="triggered")
     poll.add_argument("--limit", type=int, default=100)
+    watch = sub.add_parser("watch", help="continuously poll scanner alerts in paper mode")
+    watch.add_argument("--scanner-url", default="http://127.0.0.1:8000")
+    watch.add_argument("--stats", required=True, type=Path)
+    watch.add_argument("--db", required=True)
+    watch.add_argument("--status", default="triggered")
+    watch.add_argument("--limit", type=int, default=100)
+    watch.add_argument("--interval", type=float, default=15.0)
+    watch.add_argument("--cycles", type=int, default=None, help="stop after N cycles; omit for continuous mode")
     args = parser.parse_args(argv)
     if args.command == "rank":
         return _rank(args)
@@ -88,6 +97,28 @@ def main(argv: list[str] | None = None) -> int:
                 limit=args.limit,
             )
             print(json.dumps({"summary": SignalForgeService(store).summary(), "signals": [x.as_dict() for x in results]}, indent=2, sort_keys=True))
+            return 0
+        finally:
+            store.close()
+    if args.command == "watch":
+        store = SignalStore(args.db)
+        try:
+            records = _load_json(args.stats)
+            store.save_many_stats(load_stats_records(records))
+            service = SignalForgeService(store)
+            result = watch_scanner(
+                service,
+                scanner_url=args.scanner_url,
+                interval_seconds=args.interval,
+                status=args.status,
+                limit=args.limit,
+                max_cycles=args.cycles,
+                on_cycle=lambda event: print(json.dumps(event, sort_keys=True), flush=True),
+            )
+            print(json.dumps(result, indent=2, sort_keys=True))
+            return 0
+        except KeyboardInterrupt:
+            print(json.dumps({"stopped": "keyboard_interrupt", "paper_only": True}, sort_keys=True))
             return 0
         finally:
             store.close()

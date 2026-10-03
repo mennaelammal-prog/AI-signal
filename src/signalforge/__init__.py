@@ -1,6 +1,6 @@
 """SignalForge AI: explainable paper-only signal ranking."""
 
-from .connector import ScannerConnectorError, fetch_scanner_alerts
+from .connector import ScannerConnectorError, fetch_scanner_alerts, fetch_scanner_health
 from .models import CandidateSignal, MarketContext, RankedSignal, RiskContext, StrategyStats
 from .outcomes import OutcomeConfig, PaperOutcome, evaluate_signal
 from .poll import load_stats_records, poll_scanner_once
@@ -14,6 +14,7 @@ from .validation import (
     sensitivity_report,
     walk_forward_report,
 )
+from .watch import watch_scanner
 
 __all__ = [
     "CandidateSignal",
@@ -27,6 +28,7 @@ __all__ = [
     "SignalStore",
     "ScannerConnectorError",
     "fetch_scanner_alerts",
+    "fetch_scanner_health",
     "OutcomeConfig",
     "PaperOutcome",
     "evaluate_signal",
@@ -37,4 +39,5 @@ __all__ = [
     "check_no_lookahead",
     "sensitivity_report",
     "walk_forward_report",
+    "watch_scanner",
 ]
