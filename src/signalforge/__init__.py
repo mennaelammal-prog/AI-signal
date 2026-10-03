@@ -1,7 +1,10 @@
 """SignalForge AI: explainable paper-only signal ranking."""
 
+from .connector import ScannerConnectorError, fetch_scanner_alerts
 from .models import CandidateSignal, MarketContext, RankedSignal, RiskContext, StrategyStats
 from .scoring import ScoringConfig, SignalForgeEngine
+from .service import SignalForgeService
+from .store import SignalStore
 
 __all__ = [
     "CandidateSignal",
@@ -11,4 +14,8 @@ __all__ = [
     "StrategyStats",
     "ScoringConfig",
     "SignalForgeEngine",
+    "SignalForgeService",
+    "SignalStore",
+    "ScannerConnectorError",
+    "fetch_scanner_alerts",
 ]
