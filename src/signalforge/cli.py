@@ -158,11 +158,11 @@ def _rank(args: argparse.Namespace) -> int:
 
 
 def _load_json(path: Path) -> Any:
-    return json.loads(path.read_text(encoding="utf-8"))
+    return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
 def _load_alerts(path: Path) -> list[dict[str, Any]]:
-    text = path.read_text(encoding="utf-8").strip()
+    text = path.read_text(encoding="utf-8-sig").strip()
     if not text:
         return []
     if text.startswith("["):
