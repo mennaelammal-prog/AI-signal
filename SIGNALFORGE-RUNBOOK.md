@@ -107,6 +107,18 @@ The `signalforge.validation` module provides:
 
 These reports are safeguards against leakage and overfitting. They do not turn paper results into predictions or live performance.
 
+Run both checks from JSON exports:
+
+```powershell
+signalforge validate `
+  --signals .\data\ranked-signals.json `
+  --outcomes .\data\paper-outcomes.json `
+  --start 2026-01-01 `
+  --end 2026-03-31 `
+  --train-days 20 `
+  --test-days 5
+```
+
 ## Local review dashboard
 
 After producing a SQLite database:

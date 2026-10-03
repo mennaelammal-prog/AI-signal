@@ -12,6 +12,7 @@ from .models import MarketContext, StrategyStats
 from .report import summarize_outcomes
 from .service import SignalForgeService
 from .store import SignalStore
+from .validation import build_walk_forward_windows, sensitivity_report, walk_forward_report
 from .web import serve_dashboard
 
 
@@ -31,6 +32,13 @@ def main(argv: list[str] | None = None) -> int:
     serve.add_argument("--port", type=int, default=8765)
     report = sub.add_parser("report", help="report descriptive paper outcomes")
     report.add_argument("--db", required=True, help="SQLite path")
+    validate = sub.add_parser("validate", help="run leakage, walk-forward, and sensitivity checks")
+    validate.add_argument("--signals", required=True, type=Path, help="ranked signal JSON array")
+    validate.add_argument("--outcomes", required=True, type=Path, help="paper outcome JSON array")
+    validate.add_argument("--start", required=True, help="window start date YYYY-MM-DD")
+    validate.add_argument("--end", required=True, help="window end date YYYY-MM-DD")
+    validate.add_argument("--train-days", type=int, default=20)
+    validate.add_argument("--test-days", type=int, default=5)
     args = parser.parse_args(argv)
     if args.command == "rank":
         return _rank(args)
@@ -44,6 +52,23 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         finally:
             store.close()
+    if args.command == "validate":
+        from datetime import date
+
+        signals = _load_json(args.signals)
+        outcomes = _load_json(args.outcomes)
+        windows = build_walk_forward_windows(
+            date.fromisoformat(args.start),
+            date.fromisoformat(args.end),
+            train_days=args.train_days,
+            test_days=args.test_days,
+        )
+        payload = {
+            "walk_forward": walk_forward_report(signals, outcomes, windows),
+            "sensitivity": sensitivity_report(signals, outcomes),
+        }
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return 0
     return 2
 
 
