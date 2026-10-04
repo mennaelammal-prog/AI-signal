@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .connector import fetch_scanner_alerts
+from .connector import fetch_scanner_alerts, fetch_scanner_health
 from .models import MarketContext, RankedSignal, RiskContext, StrategyStats
 from .service import SignalForgeService
 
@@ -18,7 +18,15 @@ def poll_scanner_once(
     market: MarketContext | None = None,
     risk_by_symbol: dict[str, RiskContext] | None = None,
 ) -> list[RankedSignal]:
-    """Fetch current scanner alerts with GET and process them locally."""
+    """Fetch current scanner alerts with GET and process them locally.
+
+    Checks scanner health first and refuses to poll a non-paper-only
+    scanner (ScannerConnectorError), matching watch_scanner's per-cycle
+    guard. Previously only the continuous `watch` loop enforced this --
+    a single `signalforge poll` run against a misconfigured or
+    non-paper-mode scanner would have processed alerts with no refusal.
+    """
+    fetch_scanner_health(scanner_url)
     alerts = fetch_scanner_alerts(scanner_url, status=status, limit=limit)
     return service.process_alerts(alerts, market, risk_by_symbol)
 
